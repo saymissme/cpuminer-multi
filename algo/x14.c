@@ -40,7 +40,7 @@ void x14hash(void *output, const void *input)
 	sph_echo512_context      ctx_echo;
 	sph_hamsi512_context     ctx_hamsi;
 	sph_fugue512_context     ctx_fugue;
-	sph_shabal512_context    ctx_shabal;
+	sm3_ctx_t				 ctx_sm3;
 
 	sph_blake512_init(&ctx_blake);
 	sph_blake512(&ctx_blake, input, 80);
