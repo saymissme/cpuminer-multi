@@ -20,6 +20,8 @@
 #include "sha3/sph_fugue.h"
 #include "sha3/sph_sm3.h"
 
+
+
 void x13hash(void *output, const void *input)
 {
 	unsigned char hash[128]; // uint32_t hashA[16], hashB[16];
@@ -94,9 +96,9 @@ void x13hash(void *output, const void *input)
 
     sph_fugue512_init (&ctx_fugue);
     sph_fugue512 (&ctx_fugue, hash, 64);
-    sph_fugue512_close(&ctx_fugue, hashB);
+    sph_fugue512_close(&ctx_fugue, hash);
 
-	memcpy(output, hashB, 32);
+	memcpy(output, hash, 32);
 }
 
 int scanhash_x13(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *hashes_done)
@@ -106,10 +108,9 @@ int scanhash_x13(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *ha
 	uint32_t *pdata = work->data;
 	uint32_t *ptarget = work->target;
 
+	uint32_t n = pdata[19] - 1;
 	const uint32_t first_nonce = pdata[19];
 	const uint32_t Htarg = ptarget[7];
-
-	uint32_t n = pdata[19] - 1;
 
 	uint64_t htmax[] = {
 		0,
@@ -133,7 +134,8 @@ int scanhash_x13(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *ha
 		be32enc(&endiandata[k], pdata[k]);
 
 #ifdef DEBUG_ALGO
-	printf("[%d] Htarg=%X\n", thr_id, Htarg);
+	if (Htarg != 0)
+		printf("[%d] Htarg=%X\n", thr_id, Htarg);
 #endif
 	for (int m=0; m < 6; m++) {
 		if (Htarg <= htmax[m]) {
