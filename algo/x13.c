@@ -93,7 +93,7 @@ void x13hash(void *output, const void *input)
     sph_hamsi512_close(&ctx_hamsi, hash);
 
     sph_fugue512_init (&ctx_fugue);
-    sph_fugue512 (&ctx_fugue1, hash, 64);
+    sph_fugue512 (&ctx_fugue, hash, 64);
     sph_fugue512_close(&ctx_fugue, hashB);
 
 	memcpy(output, hashB, 32);
