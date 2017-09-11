@@ -18,9 +18,6 @@
 #include "sha3/sph_echo.h"
 #include "sha3/sph_hamsi.h"
 #include "sha3/sph_fugue.h"
-#include "sha3/sph_sm3.h"
-
-
 
 void x13hash(void *output, const void *input)
 {
@@ -40,7 +37,6 @@ void x13hash(void *output, const void *input)
 	sph_echo512_context      ctx_echo;
 	sph_hamsi512_context     ctx_hamsi;
 	sph_fugue512_context     ctx_fugue;
-	sm3_ctx_t				 ctx_sm3;
 
 	sph_blake512_init(&ctx_blake);
 	sph_blake512(&ctx_blake, input, 80);
@@ -86,17 +82,13 @@ void x13hash(void *output, const void *input)
 	sph_echo512(&ctx_echo, hashB, 64);
 	sph_echo512_close(&ctx_echo, hash);
 
-	sm3_init(&ctx_sm3);
-    sph_sm3(&ctx_sm3, hash, 64);
-    sph_sm3_close(&ctx_sm3, hashB);
+	sph_hamsi512_init(&ctx_hamsi);
+	sph_hamsi512(&ctx_hamsi, hash, 64);
+	sph_hamsi512_close(&ctx_hamsi, hashB);
 
-    sph_hamsi512_init (&ctx_hamsi);
-    sph_hamsi512 (&ctx_hamsi, hashB, 64);
-    sph_hamsi512_close(&ctx_hamsi, hash);
-
-    sph_fugue512_init (&ctx_fugue);
-    sph_fugue512 (&ctx_fugue, hash, 64);
-    sph_fugue512_close(&ctx_fugue, hash);
+	sph_fugue512_init(&ctx_fugue);
+	sph_fugue512(&ctx_fugue, hashB, 64);
+	sph_fugue512_close(&ctx_fugue, hash);
 
 	memcpy(output, hash, 32);
 }
@@ -108,9 +100,10 @@ int scanhash_x13(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *ha
 	uint32_t *pdata = work->data;
 	uint32_t *ptarget = work->target;
 
-	uint32_t n = pdata[19] - 1;
 	const uint32_t first_nonce = pdata[19];
 	const uint32_t Htarg = ptarget[7];
+
+	uint32_t n = pdata[19] - 1;
 
 	uint64_t htmax[] = {
 		0,
@@ -134,8 +127,7 @@ int scanhash_x13(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *ha
 		be32enc(&endiandata[k], pdata[k]);
 
 #ifdef DEBUG_ALGO
-	if (Htarg != 0)
-		printf("[%d] Htarg=%X\n", thr_id, Htarg);
+	printf("[%d] Htarg=%X\n", thr_id, Htarg);
 #endif
 	for (int m=0; m < 6; m++) {
 		if (Htarg <= htmax[m]) {

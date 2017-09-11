@@ -18,7 +18,7 @@
 #include "sha3/sph_echo.h"
 #include "sha3/sph_hamsi.h"
 #include "sha3/sph_fugue.h"
-#include "sha3/sph_shabal.h"
+#include "sha3/sph_sm3.h"
 
 //#define DEBUG_ALGO
 
@@ -86,17 +86,17 @@ void x14hash(void *output, const void *input)
 	sph_echo512(&ctx_echo, hashB, 64);
 	sph_echo512_close(&ctx_echo, hash);
 
+	sm3_init(&ctx_sm3);
+    sph_sm3(&ctx_sm3, hash, 64);
+    sph_sm3_close(&ctx_sm3, hashB);
+
 	sph_hamsi512_init(&ctx_hamsi);
-	sph_hamsi512(&ctx_hamsi, hash, 64);
-	sph_hamsi512_close(&ctx_hamsi, hashB);
+	sph_hamsi512(&ctx_hamsi, hashB, 64);
+	sph_hamsi512_close(&ctx_hamsi, hash);
 
 	sph_fugue512_init(&ctx_fugue);
-	sph_fugue512(&ctx_fugue, hashB, 64);
+	sph_fugue512(&ctx_fugue, hash, 64);
 	sph_fugue512_close(&ctx_fugue, hash);
-
-	sph_shabal512_init(&ctx_shabal);
-	sph_shabal512(&ctx_shabal, hash, 64);
-	sph_shabal512_close(&ctx_shabal, hash);
 
 	memcpy(output, hash, 32);
 }
